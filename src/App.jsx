@@ -1,3 +1,5 @@
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 import { useState, useRef, useEffect } from "react";
 import html2canvas from "html2canvas";
 
@@ -169,10 +171,31 @@ const setAlignment = (command, value) => {
   const formattedTime = now.toLocaleTimeString();
 
  const exportAll = async () => {
-  const now = new Date();
 
+  const now = new Date();
   const date = now.toLocaleDateString("en-GB").replace(/\//g, "-");
   const time = now.toLocaleTimeString().replace(/:/g, "-");
+
+  // SINGLE PAGE
+  if (pageRefs.current.length === 1) {
+
+    const canvas = await html2canvas(pageRefs.current[0], {
+      scale: 3,
+      useCORS: true
+    });
+
+    const link = document.createElement("a");
+
+    link.download = `${theme}-${date}-${time}.png`;
+    link.href = canvas.toDataURL("image/png");
+
+    link.click();
+
+    return;
+  }
+
+  // MULTIPLE PAGES → ZIP
+  const zip = new JSZip();
 
   for (let i = 0; i < pageRefs.current.length; i++) {
 
@@ -181,19 +204,18 @@ const setAlignment = (command, value) => {
       useCORS: true
     });
 
+    const blob = await new Promise((resolve) =>
+      canvas.toBlob(resolve)
+    );
+
     const fileName = `${theme}-${date}-${time}-page-${i + 1}.png`;
 
-    const link = document.createElement("a");
-    link.download = fileName;
-    link.href = canvas.toDataURL("image/png");
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    // mobile browsers ke liye delay
-    await new Promise((r) => setTimeout(r, 800));
+    zip.file(fileName, blob);
   }
+
+  const zipBlob = await zip.generateAsync({ type: "blob" });
+
+  saveAs(zipBlob, `insta-diary-${date}-${time}.zip`);
 };
   /* ---------- COLORS ---------- */
 
@@ -355,7 +377,7 @@ const setAlignment = (command, value) => {
 </button>
 
         <button onClick={exportAll} style={{ marginLeft: 10 }}>
-          Export All
+          Download
         </button>
       </div>
 
