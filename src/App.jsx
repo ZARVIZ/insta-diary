@@ -168,17 +168,31 @@ const setAlignment = (command, value) => {
   const formattedDate = now.toLocaleDateString("en-GB");
   const formattedTime = now.toLocaleTimeString();
 
-  const exportAll = async () => {
+ const exportAll = async () => {
+  const now = new Date();
+
+  const date = now.toLocaleDateString("en-GB").replace(/\//g, "-");
+  const time = now.toLocaleTimeString().replace(/:/g, "-");
+
   for (let i = 0; i < pageRefs.current.length; i++) {
 
-    const canvas = await html2canvas(pageRefs.current[i], { scale: 3 });
+    const canvas = await html2canvas(pageRefs.current[i], {
+      scale: 3,
+      useCORS: true
+    });
+
+    const fileName = `${theme}-${date}-${time}-page-${i + 1}.png`;
 
     const link = document.createElement("a");
-    link.download = `diary-page-${i+1}.png`;
-    link.href = canvas.toDataURL();
-    link.click();
+    link.download = fileName;
+    link.href = canvas.toDataURL("image/png");
 
-    await new Promise(r => setTimeout(r, 500));
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // mobile browsers ke liye delay
+    await new Promise((r) => setTimeout(r, 800));
   }
 };
   /* ---------- COLORS ---------- */
