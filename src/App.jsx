@@ -169,22 +169,18 @@ const setAlignment = (command, value) => {
   const formattedTime = now.toLocaleTimeString();
 
   const exportAll = async () => {
-    for (let i = 0; i < pages.length; i++) {
-      const canvas = await html2canvas(pageRefs.current[i], {
-        scale: 3,
-        useCORS: true
-      });
+  for (let i = 0; i < pageRefs.current.length; i++) {
 
-      const safeTime = formattedTime.replace(/:/g, "-");
-      const fileName = `${theme}-${formattedDate}-${safeTime}-page-${i + 1}.png`;
+    const canvas = await html2canvas(pageRefs.current[i], { scale: 3 });
 
-      const link = document.createElement("a");
-      link.download = fileName;
-      link.href = canvas.toDataURL();
-      link.click();
-    }
-  };
+    const link = document.createElement("a");
+    link.download = `diary-page-${i+1}.png`;
+    link.href = canvas.toDataURL();
+    link.click();
 
+    await new Promise(r => setTimeout(r, 500));
+  }
+};
   /* ---------- COLORS ---------- */
 
   const textColor =
